@@ -503,100 +503,95 @@ mammouth.compile = function(code) {
 				}
 				return r;
 			case 'ForStatement':
-				var r = Tokens.ForToken + '(';
-				if(seq.initializer.type == 'BinaryExpression') {
-					if(seq.initializer.operator == 'of') {
-						seq.test = {
-							"type": "BinaryExpression",
-							"operator": "<",
-							"left": seq.initializer.left,
-							"right": {
-								"type": "FunctionCall",
-								"name": {
-									"type": "Variable",
-									"name": "count"
-								},
-								"arguments": [
-									seq.initializer.right
-								]
-							}
-						};
-						seq.counter = {
-							"type": "PostfixExpression",
-							"operator": "++",
-							"expression": {
-								"type": "Variable",
-								"name": "i"
-							}
-						};
-						if(seq.statement !== null) {
-							seq.statement.splice(0, 0, {
-								"type": "AssignmentExpression",
-								"operator": "=",
-								"left": seq.initializer.left,
-								"right": {
-									"type": "PropertyAccess",
-									"base": seq.initializer.right,
-									"name": {
-										"type": "Variable",
-										"name": "i"
-									}
+				
+				if(seq.initializer.type == 'BinaryExpression' && seq.initializer.operator == 'of') {
+					
+					var r = Tokens.ForeachToken + '(';
+					r += evalStatement(seq.initializer.right) + ' as ' + evalStatement(seq.initializer.left);
+					r += ')';
+					r += ' {';
+					var body = '';
+					
+					if(seq.statement !== null) {
+						for(var j = 0; j < seq.statement.length; j++) {
+							if(typeof seq.statement[j] == 'undefined') {
+								body += '\n';
+							} else {
+								seq.statement[j].only = true;
+								if(typeof seq.statement[j] == 'string') {
+									body += evalStatement(seq.statement[j]);
+								} else {
+									body += evalStatement(seq.statement[j]) + '\n';
 								}
-							});
-						}
-						seq.initializer = {
-							"type": "AssignmentExpression",
-							"operator": "=",
-							"left": {
-									"type": "Variable",
-									"name": "i"
-								},
-							"right": {
-								"type": "NumericLiteral",
-								"value": 0
 							}
-						};
-					}
-				}
-				r += evalStatement(seq.initializer) + '; ';
-				r += evalStatement(seq.test) + '; ';
-				r += evalStatement(seq.counter);
-				r += ')';
-				r += ' {';
-				var body = '';
-				if(seq.statement !== null) {
-					for(var j = 0; j < seq.statement.length; j++) {
-						if(typeof seq.statement[j] == 'undefined') {
-							body += '\n';
-						} else {
-							seq.statement[j].only = true;
-							if(typeof seq.statement[j] == 'string') {
-								body += evalStatement(seq.statement[j]);
+						}
+						r += '\n';
+						var pars = mammouth.LineTerminatorParser.parse(body);
+						for(var x = 0; x < pars.length; x++) {
+							if(pars[x] != '') {
+								if(seq.statement.length == 1) {
+									r += '\t' + pars[x] + '\n';
+								} else {
+									r += '\t' + pars[x] + '\n';
+								}
+							} else if(typeof pars[x] == 'undefined') {
+								r += '\n';
 							} else {
-								body += evalStatement(seq.statement[j]) + '\n';
+								r += pars[x];
 							}
 						}
+					} else {
+						r += '\n';
 					}
-					r += '\n';
-					var pars = mammouth.LineTerminatorParser.parse(body);
-					for(var x = 0; x < pars.length; x++) {
-						if(pars[x] != '') {
-							if(seq.statement.length == 1) {
-								r += '\t' + pars[x] + '\n';
-							} else {
-								r += '\t' + pars[x] + '\n';
-							}
-						} else if(typeof pars[x] == 'undefined') {
-							r += '\n';
-						} else {
-							r += pars[x];
-						}
-					}
-				} else {
-					r += '\n';
+					r += '}';
 				}
-				r += '}';
+				else {
+						
+					var r = Tokens.ForToken + '(';
+					
+					r += evalStatement(seq.initializer) + '; ';
+					r += evalStatement(seq.test) + '; ';
+					r += evalStatement(seq.counter);
+					r += ')';
+					r += ' {';
+					var body = '';
+					
+					if(seq.statement !== null) {
+						for(var j = 0; j < seq.statement.length; j++) {
+							if(typeof seq.statement[j] == 'undefined') {
+								body += '\n';
+							} else {
+								seq.statement[j].only = true;
+								if(typeof seq.statement[j] == 'string') {
+									body += evalStatement(seq.statement[j]);
+								} else {
+									body += evalStatement(seq.statement[j]) + '\n';
+								}
+							}
+						}
+						r += '\n';
+						var pars = mammouth.LineTerminatorParser.parse(body);
+						for(var x = 0; x < pars.length; x++) {
+							if(pars[x] != '') {
+								if(seq.statement.length == 1) {
+									r += '\t' + pars[x] + '\n';
+								} else {
+									r += '\t' + pars[x] + '\n';
+								}
+							} else if(typeof pars[x] == 'undefined') {
+								r += '\n';
+							} else {
+								r += pars[x];
+							}
+						}
+					} else {
+						r += '\n';
+					}
+					r += '}';
+				}
+				
 				return r;
+				
 			case 'WhileStatement':
 				var r = Tokens.WhileToken + '(';
 				r += evalStatement(seq.condition);

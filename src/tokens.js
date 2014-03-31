@@ -4,6 +4,7 @@ mammouth.Tokens = {
 	IfToken: 'if',
 	ElseToken: 'else',
 	ForToken: 'for',
+	ForeachToken: 'foreach',
 	WhileToken: 'while',
 	SwitchToken: 'switch',
 	CaseToken: 'case',
